@@ -1,0 +1,10 @@
+version: '2'
+services:
+    finalyaldaymerchant-elasticsearch:
+        container_name: finalyaldaymerchant-elasticsearch
+        image: elasticsearch:2.4.1
+        # volumes:
+        #     - ~/volumes/jhipster/FinalYaldayMerchant/elasticsearch/:/usr/share/elasticsearch/data/
+        ports:
+            - 9200:9200
+            - 9300:9300
