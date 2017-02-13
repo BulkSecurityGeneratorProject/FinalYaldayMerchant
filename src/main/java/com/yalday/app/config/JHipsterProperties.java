@@ -17,8 +17,6 @@ public class JHipsterProperties {
 
     private final Http http = new Http();
 
-    private final Cache cache = new Cache();
-
     private final Mail mail = new Mail();
 
     private final Security security = new Security();
@@ -37,10 +35,6 @@ public class JHipsterProperties {
 
     public Http getHttp() {
         return http;
-    }
-
-    public Cache getCache() {
-        return cache;
     }
 
     public Mail getMail() {
@@ -118,38 +112,6 @@ public class JHipsterProperties {
 
             public void setTimeToLiveInDays(int timeToLiveInDays) {
                 this.timeToLiveInDays = timeToLiveInDays;
-            }
-        }
-    }
-
-    public static class Cache {
-        private final Hazelcast hazelcast = new Hazelcast();
-
-
-        public Hazelcast getHazelcast() {
-            return hazelcast;
-        }
-
-        public static class Hazelcast {
-
-            private int timeToLiveSeconds = 3600;
-
-            private int backupCount = 1;
-
-            public int getTimeToLiveSeconds() {
-                return timeToLiveSeconds;
-            }
-
-            public void setTimeToLiveSeconds(int timeToLiveSeconds) {
-                this.timeToLiveSeconds = timeToLiveSeconds;
-            }
-
-            public int getBackupCount() {
-                return backupCount;
-            }
-
-            public void setBackupCount(int backupCount) {
-                this.backupCount = backupCount;
             }
         }
     }
