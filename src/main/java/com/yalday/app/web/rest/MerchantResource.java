@@ -2,7 +2,7 @@ package com.yalday.app.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
 import com.yalday.app.domain.Merchant;
-
+import com.yalday.app.domain.dto.MerchantDTO;
 import com.yalday.app.repository.MerchantRepository;
 import com.yalday.app.repository.search.MerchantSearchRepository;
 import com.yalday.app.web.rest.util.HeaderUtil;
@@ -18,14 +18,13 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
 /**
  * REST controller for managing Merchant.
@@ -35,7 +34,7 @@ import static org.elasticsearch.index.query.QueryBuilders.*;
 public class MerchantResource {
 
     private final Logger log = LoggerFactory.getLogger(MerchantResource.class);
-        
+
     @Inject
     private MerchantRepository merchantRepository;
 
@@ -45,18 +44,15 @@ public class MerchantResource {
     /**
      * POST  /merchants : Create a new merchant.
      *
-     * @param merchant the merchant to create
+     * @param merchantDTO the merchant to create
      * @return the ResponseEntity with status 201 (Created) and with body the new merchant, or with status 400 (Bad Request) if the merchant has already an ID
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
     @PostMapping("/merchants")
     @Timed
-    public ResponseEntity<Merchant> createMerchant(@Valid @RequestBody Merchant merchant) throws URISyntaxException {
-        log.debug("REST request to save Merchant : {}", merchant);
-        if (merchant.getId() != null) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("merchant", "idexists", "A new merchant cannot already have an ID")).body(null);
-        }
-        Merchant result = merchantRepository.save(merchant);
+    public ResponseEntity<Merchant> createMerchant(@Valid @RequestBody MerchantDTO merchantDTO) throws URISyntaxException {
+        log.debug("REST request to save Merchant : {}", merchantDTO);
+        Merchant result = merchantRepository.save(merchantDTO.toMerchant());
         merchantSearchRepository.save(result);
         return ResponseEntity.created(new URI("/api/merchants/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert("merchant", result.getId().toString()))
@@ -72,17 +68,14 @@ public class MerchantResource {
      * or with status 500 (Internal Server Error) if the merchant couldnt be updated
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @PutMapping("/merchants")
+    @PostMapping("/merchants/{id}")
     @Timed
-    public ResponseEntity<Merchant> updateMerchant(@Valid @RequestBody Merchant merchant) throws URISyntaxException {
+    public ResponseEntity<Merchant> updateMerchant(@NotNull @PathVariable Long id, @Valid @RequestBody MerchantDTO merchant) throws URISyntaxException {
         log.debug("REST request to update Merchant : {}", merchant);
-        if (merchant.getId() == null) {
-            return createMerchant(merchant);
-        }
-        Merchant result = merchantRepository.save(merchant);
+        Merchant result = merchantRepository.saveAndFlush(merchant.toMerchant(Optional.of(id)));
         merchantSearchRepository.save(result);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert("merchant", merchant.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert("merchant", id.toString()))
             .body(result);
     }
 
@@ -140,7 +133,7 @@ public class MerchantResource {
      * SEARCH  /_search/merchants?query=:query : search for the merchant corresponding
      * to the query.
      *
-     * @param query the query of the merchant search 
+     * @param query the query of the merchant search
      * @param pageable the pagination information
      * @return the result of the search
      * @throws URISyntaxException if there is an error to generate the pagination HTTP headers

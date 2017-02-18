@@ -6,7 +6,6 @@
     "packageFolder": "com/yalday/app",
     "serverPort": "8081",
     "authenticationType": "jwt",
-    "hibernateCache": "hazelcast",
     "clusteredHttpSession": false,
     "websocket": false,
     "databaseType": "sql",

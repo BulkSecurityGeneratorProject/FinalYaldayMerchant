@@ -1,20 +1,18 @@
 package com.yalday.app.web.rest;
 
 import com.yalday.app.FinalYaldayMerchantApp;
-
 import com.yalday.app.domain.Merchant;
+import com.yalday.app.domain.dto.MerchantDTO;
 import com.yalday.app.repository.MerchantRepository;
 import com.yalday.app.repository.search.MerchantSearchRepository;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.hamcrest.Matchers.hasItem;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,14 +21,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import java.sql.Timestamp;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -73,13 +72,9 @@ public class MerchantResourceIntTest {
     private static final String DEFAULT_INSTAGRAM = "AAAAAAAAAA";
     private static final String UPDATED_INSTAGRAM = "BBBBBBBBBB";
 
-    private static final ZonedDateTime DEFAULT_DATE_CREATED = ZonedDateTime.ofInstant(Instant.ofEpochMilli(0L), ZoneOffset.UTC);
-    private static final ZonedDateTime UPDATED_DATE_CREATED = ZonedDateTime.now(ZoneId.systemDefault()).withNano(0);
-    private static final String DEFAULT_DATE_CREATED_STR = DateTimeFormatter.ISO_INSTANT.format(DEFAULT_DATE_CREATED);
+    private static final String DEFAULT_DATE_CREATED_STR = DateTimeFormatter.ISO_INSTANT.format(ZonedDateTime.now(Clock.systemDefaultZone()));
 
-    private static final ZonedDateTime DEFAULT_LAST_EDITED = ZonedDateTime.ofInstant(Instant.ofEpochMilli(0L), ZoneOffset.UTC);
-    private static final ZonedDateTime UPDATED_LAST_EDITED = ZonedDateTime.now(ZoneId.systemDefault()).withNano(0);
-    private static final String DEFAULT_LAST_EDITED_STR = DateTimeFormatter.ISO_INSTANT.format(DEFAULT_LAST_EDITED);
+    private static final String DEFAULT_LAST_EDITED_STR = DateTimeFormatter.ISO_INSTANT.format(ZonedDateTime.now(Clock.systemDefaultZone()));
 
     @Inject
     private MerchantRepository merchantRepository;
@@ -98,7 +93,7 @@ public class MerchantResourceIntTest {
 
     private MockMvc restMerchantMockMvc;
 
-    private Merchant merchant;
+    private MerchantDTO merchant;
 
     @Before
     public void setup() {
@@ -113,31 +108,29 @@ public class MerchantResourceIntTest {
 
     /**
      * Create an entity for this test.
-     *
+     * <p>
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
-    public static Merchant createEntity(EntityManager em) {
-        Merchant merchant = new Merchant()
-                .name(DEFAULT_NAME)
-                .email(DEFAULT_EMAIL)
-                .description(DEFAULT_DESCRIPTION)
-                .logo(DEFAULT_LOGO)
-                .firstLineOfAddress(DEFAULT_FIRST_LINE_OF_ADDRESS)
-                .secondLineOfAddress(DEFAULT_SECOND_LINE_OF_ADDRESS)
-                .city(DEFAULT_CITY)
-                .postcode(DEFAULT_POSTCODE)
-                .facebook(DEFAULT_FACEBOOK)
-                .instagram(DEFAULT_INSTAGRAM)
-                .dateCreated(DEFAULT_DATE_CREATED)
-                .lastEdited(DEFAULT_LAST_EDITED);
-        return merchant;
+    public static MerchantDTO createEntity() {
+        return MerchantDTO.builder()
+            .name(DEFAULT_NAME)
+            .email(DEFAULT_EMAIL)
+            .description(DEFAULT_DESCRIPTION)
+            .logo(DEFAULT_LOGO)
+            .firstLineOfAddress(DEFAULT_FIRST_LINE_OF_ADDRESS)
+            .secondLineOfAddress(DEFAULT_SECOND_LINE_OF_ADDRESS)
+            .city(DEFAULT_CITY)
+            .postcode(DEFAULT_POSTCODE)
+            .facebook(DEFAULT_FACEBOOK)
+            .instagram(DEFAULT_INSTAGRAM)
+            .build();
     }
 
     @Before
     public void initTest() {
         merchantSearchRepository.deleteAll();
-        merchant = createEntity(em);
+        merchant = createEntity();
     }
 
     @Test
@@ -147,10 +140,12 @@ public class MerchantResourceIntTest {
 
         // Create the Merchant
 
+        Timestamp before = Timestamp.from(Instant.now(Clock.systemDefaultZone()));
         restMerchantMockMvc.perform(post("/api/merchants")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(merchant)))
-                .andExpect(status().isCreated());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(merchant)))
+            .andExpect(status().isCreated());
+        Timestamp after = Timestamp.from(Instant.now(Clock.systemDefaultZone()));
 
         // Validate the Merchant in the database
         List<Merchant> merchants = merchantRepository.findAll();
@@ -166,8 +161,8 @@ public class MerchantResourceIntTest {
         assertThat(testMerchant.getPostcode()).isEqualTo(DEFAULT_POSTCODE);
         assertThat(testMerchant.getFacebook()).isEqualTo(DEFAULT_FACEBOOK);
         assertThat(testMerchant.getInstagram()).isEqualTo(DEFAULT_INSTAGRAM);
-        assertThat(testMerchant.getDateCreated()).isEqualTo(DEFAULT_DATE_CREATED);
-        assertThat(testMerchant.getLastEdited()).isEqualTo(DEFAULT_LAST_EDITED);
+        assertThat(testMerchant.getDateCreated()).isBetween(before, after, true, true);
+        assertThat(testMerchant.getLastEdited()).isBetween(before, after, true, true);
 
         // Validate the Merchant in ElasticSearch
         Merchant merchantEs = merchantSearchRepository.findOne(testMerchant.getId());
@@ -184,9 +179,9 @@ public class MerchantResourceIntTest {
         // Create the Merchant, which fails.
 
         restMerchantMockMvc.perform(post("/api/merchants")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(merchant)))
-                .andExpect(status().isBadRequest());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(merchant)))
+            .andExpect(status().isBadRequest());
 
         List<Merchant> merchants = merchantRepository.findAll();
         assertThat(merchants).hasSize(databaseSizeBeforeTest);
@@ -202,9 +197,9 @@ public class MerchantResourceIntTest {
         // Create the Merchant, which fails.
 
         restMerchantMockMvc.perform(post("/api/merchants")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(merchant)))
-                .andExpect(status().isBadRequest());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(merchant)))
+            .andExpect(status().isBadRequest());
 
         List<Merchant> merchants = merchantRepository.findAll();
         assertThat(merchants).hasSize(databaseSizeBeforeTest);
@@ -220,9 +215,9 @@ public class MerchantResourceIntTest {
         // Create the Merchant, which fails.
 
         restMerchantMockMvc.perform(post("/api/merchants")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(merchant)))
-                .andExpect(status().isBadRequest());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(merchant)))
+            .andExpect(status().isBadRequest());
 
         List<Merchant> merchants = merchantRepository.findAll();
         assertThat(merchants).hasSize(databaseSizeBeforeTest);
@@ -238,9 +233,9 @@ public class MerchantResourceIntTest {
         // Create the Merchant, which fails.
 
         restMerchantMockMvc.perform(post("/api/merchants")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(merchant)))
-                .andExpect(status().isBadRequest());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(merchant)))
+            .andExpect(status().isBadRequest());
 
         List<Merchant> merchants = merchantRepository.findAll();
         assertThat(merchants).hasSize(databaseSizeBeforeTest);
@@ -250,38 +245,36 @@ public class MerchantResourceIntTest {
     @Transactional
     public void getAllMerchants() throws Exception {
         // Initialize the database
-        merchantRepository.saveAndFlush(merchant);
+        Merchant saved = merchantRepository.saveAndFlush(merchant.toMerchant());
 
         // Get all the merchants
         restMerchantMockMvc.perform(get("/api/merchants?sort=id,desc"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(jsonPath("$.[*].id").value(hasItem(merchant.getId().intValue())))
-                .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME.toString())))
-                .andExpect(jsonPath("$.[*].email").value(hasItem(DEFAULT_EMAIL.toString())))
-                .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION.toString())))
-                .andExpect(jsonPath("$.[*].logo").value(hasItem(DEFAULT_LOGO.toString())))
-                .andExpect(jsonPath("$.[*].firstLineOfAddress").value(hasItem(DEFAULT_FIRST_LINE_OF_ADDRESS.toString())))
-                .andExpect(jsonPath("$.[*].secondLineOfAddress").value(hasItem(DEFAULT_SECOND_LINE_OF_ADDRESS.toString())))
-                .andExpect(jsonPath("$.[*].city").value(hasItem(DEFAULT_CITY.toString())))
-                .andExpect(jsonPath("$.[*].postcode").value(hasItem(DEFAULT_POSTCODE.toString())))
-                .andExpect(jsonPath("$.[*].facebook").value(hasItem(DEFAULT_FACEBOOK.toString())))
-                .andExpect(jsonPath("$.[*].instagram").value(hasItem(DEFAULT_INSTAGRAM.toString())))
-                .andExpect(jsonPath("$.[*].dateCreated").value(hasItem(DEFAULT_DATE_CREATED_STR)))
-                .andExpect(jsonPath("$.[*].lastEdited").value(hasItem(DEFAULT_LAST_EDITED_STR)));
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(saved.getId().intValue())))
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
+            .andExpect(jsonPath("$.[*].email").value(hasItem(DEFAULT_EMAIL)))
+            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
+            .andExpect(jsonPath("$.[*].logo").value(hasItem(DEFAULT_LOGO)))
+            .andExpect(jsonPath("$.[*].firstLineOfAddress").value(hasItem(DEFAULT_FIRST_LINE_OF_ADDRESS)))
+            .andExpect(jsonPath("$.[*].secondLineOfAddress").value(hasItem(DEFAULT_SECOND_LINE_OF_ADDRESS)))
+            .andExpect(jsonPath("$.[*].city").value(hasItem(DEFAULT_CITY)))
+            .andExpect(jsonPath("$.[*].postcode").value(hasItem(DEFAULT_POSTCODE)))
+            .andExpect(jsonPath("$.[*].facebook").value(hasItem(DEFAULT_FACEBOOK)))
+            .andExpect(jsonPath("$.[*].instagram").value(hasItem(DEFAULT_INSTAGRAM)));
     }
 
     @Test
     @Transactional
     public void getMerchant() throws Exception {
         // Initialize the database
-        merchantRepository.saveAndFlush(merchant);
+        Merchant saved = merchantRepository.saveAndFlush(merchant.toMerchant());
 
         // Get the merchant
-        restMerchantMockMvc.perform(get("/api/merchants/{id}", merchant.getId()))
+        restMerchantMockMvc.perform(get("/api/merchants/{id}", saved.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.id").value(merchant.getId().intValue()))
+            .andExpect(jsonPath("$.id").value(saved.getId().intValue()))
             .andExpect(jsonPath("$.name").value(DEFAULT_NAME.toString()))
             .andExpect(jsonPath("$.email").value(DEFAULT_EMAIL.toString()))
             .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION.toString()))
@@ -291,9 +284,7 @@ public class MerchantResourceIntTest {
             .andExpect(jsonPath("$.city").value(DEFAULT_CITY.toString()))
             .andExpect(jsonPath("$.postcode").value(DEFAULT_POSTCODE.toString()))
             .andExpect(jsonPath("$.facebook").value(DEFAULT_FACEBOOK.toString()))
-            .andExpect(jsonPath("$.instagram").value(DEFAULT_INSTAGRAM.toString()))
-            .andExpect(jsonPath("$.dateCreated").value(DEFAULT_DATE_CREATED_STR))
-            .andExpect(jsonPath("$.lastEdited").value(DEFAULT_LAST_EDITED_STR));
+            .andExpect(jsonPath("$.instagram").value(DEFAULT_INSTAGRAM.toString()));
     }
 
     @Test
@@ -301,37 +292,38 @@ public class MerchantResourceIntTest {
     public void getNonExistingMerchant() throws Exception {
         // Get the merchant
         restMerchantMockMvc.perform(get("/api/merchants/{id}", Long.MAX_VALUE))
-                .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound());
     }
 
     @Test
     @Transactional
     public void updateMerchant() throws Exception {
         // Initialize the database
-        merchantRepository.saveAndFlush(merchant);
-        merchantSearchRepository.save(merchant);
+        Merchant saved = merchantRepository.saveAndFlush(merchant.toMerchant());
+        merchantSearchRepository.save(saved);
         int databaseSizeBeforeUpdate = merchantRepository.findAll().size();
 
         // Update the merchant
-        Merchant updatedMerchant = merchantRepository.findOne(merchant.getId());
-        updatedMerchant
-                .name(UPDATED_NAME)
-                .email(UPDATED_EMAIL)
-                .description(UPDATED_DESCRIPTION)
-                .logo(UPDATED_LOGO)
-                .firstLineOfAddress(UPDATED_FIRST_LINE_OF_ADDRESS)
-                .secondLineOfAddress(UPDATED_SECOND_LINE_OF_ADDRESS)
-                .city(UPDATED_CITY)
-                .postcode(UPDATED_POSTCODE)
-                .facebook(UPDATED_FACEBOOK)
-                .instagram(UPDATED_INSTAGRAM)
-                .dateCreated(UPDATED_DATE_CREATED)
-                .lastEdited(UPDATED_LAST_EDITED);
+        MerchantDTO updatedMerchant = MerchantDTO.builder()
+            .name(UPDATED_NAME)
+            .email(UPDATED_EMAIL)
+            .description(UPDATED_DESCRIPTION)
+            .logo(UPDATED_LOGO)
+            .firstLineOfAddress(UPDATED_FIRST_LINE_OF_ADDRESS)
+            .secondLineOfAddress(UPDATED_SECOND_LINE_OF_ADDRESS)
+            .city(UPDATED_CITY)
+            .postcode(UPDATED_POSTCODE)
+            .facebook(UPDATED_FACEBOOK)
+            .instagram(UPDATED_INSTAGRAM)
+            .build();
 
-        restMerchantMockMvc.perform(put("/api/merchants")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(updatedMerchant)))
-                .andExpect(status().isOk());
+        Thread.sleep(50); // so the last edited time is different
+
+        Timestamp updateTime = Timestamp.from(Instant.now(Clock.systemDefaultZone()));
+        restMerchantMockMvc.perform(post("/api/merchants/{id}", saved.getId())
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(updatedMerchant)))
+            .andExpect(status().isOk());
 
         // Validate the Merchant in the database
         List<Merchant> merchants = merchantRepository.findAll();
@@ -347,8 +339,8 @@ public class MerchantResourceIntTest {
         assertThat(testMerchant.getPostcode()).isEqualTo(UPDATED_POSTCODE);
         assertThat(testMerchant.getFacebook()).isEqualTo(UPDATED_FACEBOOK);
         assertThat(testMerchant.getInstagram()).isEqualTo(UPDATED_INSTAGRAM);
-        assertThat(testMerchant.getDateCreated()).isEqualTo(UPDATED_DATE_CREATED);
-        assertThat(testMerchant.getLastEdited()).isEqualTo(UPDATED_LAST_EDITED);
+        assertThat(testMerchant.getDateCreated()).isEqualTo(saved.getDateCreated());
+        assertThat(testMerchant.getLastEdited()).isAfter(updateTime);
 
         // Validate the Merchant in ElasticSearch
         Merchant merchantEs = merchantSearchRepository.findOne(testMerchant.getId());
@@ -359,17 +351,17 @@ public class MerchantResourceIntTest {
     @Transactional
     public void deleteMerchant() throws Exception {
         // Initialize the database
-        merchantRepository.saveAndFlush(merchant);
-        merchantSearchRepository.save(merchant);
+        Merchant saved = merchantRepository.saveAndFlush(merchant.toMerchant());
+        merchantSearchRepository.save(saved);
         int databaseSizeBeforeDelete = merchantRepository.findAll().size();
 
         // Get the merchant
-        restMerchantMockMvc.perform(delete("/api/merchants/{id}", merchant.getId())
-                .accept(TestUtil.APPLICATION_JSON_UTF8))
-                .andExpect(status().isOk());
+        restMerchantMockMvc.perform(delete("/api/merchants/{id}", saved.getId())
+            .accept(TestUtil.APPLICATION_JSON_UTF8))
+            .andExpect(status().isOk());
 
         // Validate ElasticSearch is empty
-        boolean merchantExistsInEs = merchantSearchRepository.exists(merchant.getId());
+        boolean merchantExistsInEs = merchantSearchRepository.exists(saved.getId());
         assertThat(merchantExistsInEs).isFalse();
 
         // Validate the database is empty
@@ -381,25 +373,25 @@ public class MerchantResourceIntTest {
     @Transactional
     public void searchMerchant() throws Exception {
         // Initialize the database
-        merchantRepository.saveAndFlush(merchant);
-        merchantSearchRepository.save(merchant);
+        Merchant saved = merchantRepository.saveAndFlush(merchant.toMerchant());
+        merchantSearchRepository.save(saved);
 
         // Search the merchant
-        restMerchantMockMvc.perform(get("/api/_search/merchants?query=id:" + merchant.getId()))
+        restMerchantMockMvc.perform(get("/api/_search/merchants?query=id:" + saved.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(merchant.getId().intValue())))
-            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME.toString())))
-            .andExpect(jsonPath("$.[*].email").value(hasItem(DEFAULT_EMAIL.toString())))
-            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION.toString())))
-            .andExpect(jsonPath("$.[*].logo").value(hasItem(DEFAULT_LOGO.toString())))
-            .andExpect(jsonPath("$.[*].firstLineOfAddress").value(hasItem(DEFAULT_FIRST_LINE_OF_ADDRESS.toString())))
-            .andExpect(jsonPath("$.[*].secondLineOfAddress").value(hasItem(DEFAULT_SECOND_LINE_OF_ADDRESS.toString())))
-            .andExpect(jsonPath("$.[*].city").value(hasItem(DEFAULT_CITY.toString())))
-            .andExpect(jsonPath("$.[*].postcode").value(hasItem(DEFAULT_POSTCODE.toString())))
-            .andExpect(jsonPath("$.[*].facebook").value(hasItem(DEFAULT_FACEBOOK.toString())))
-            .andExpect(jsonPath("$.[*].instagram").value(hasItem(DEFAULT_INSTAGRAM.toString())))
-            .andExpect(jsonPath("$.[*].dateCreated").value(hasItem(DEFAULT_DATE_CREATED_STR)))
-            .andExpect(jsonPath("$.[*].lastEdited").value(hasItem(DEFAULT_LAST_EDITED_STR)));
+            .andExpect(jsonPath("$.[*].id").value(hasItem(saved.getId().intValue())))
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
+            .andExpect(jsonPath("$.[*].email").value(hasItem(DEFAULT_EMAIL)))
+            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
+            .andExpect(jsonPath("$.[*].logo").value(hasItem(DEFAULT_LOGO)))
+            .andExpect(jsonPath("$.[*].firstLineOfAddress").value(hasItem(DEFAULT_FIRST_LINE_OF_ADDRESS)))
+            .andExpect(jsonPath("$.[*].secondLineOfAddress").value(hasItem(DEFAULT_SECOND_LINE_OF_ADDRESS)))
+            .andExpect(jsonPath("$.[*].city").value(hasItem(DEFAULT_CITY)))
+            .andExpect(jsonPath("$.[*].postcode").value(hasItem(DEFAULT_POSTCODE)))
+            .andExpect(jsonPath("$.[*].facebook").value(hasItem(DEFAULT_FACEBOOK)))
+            .andExpect(jsonPath("$.[*].instagram").value(hasItem(DEFAULT_INSTAGRAM)))
+            .andExpect(jsonPath("$.[*].dateCreated").exists())
+            .andExpect(jsonPath("$.[*].lastEdited").exists());
     }
 }
