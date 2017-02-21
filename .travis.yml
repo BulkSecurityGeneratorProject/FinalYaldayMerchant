@@ -1,24 +1,27 @@
 os:
-  - linux
+- linux
 services:
-  - docker
+- docker
 language: java
 node_js:
-  - "4.5.0"
+- 4.5.0
 jdk:
-  - oraclejdk8
+- oraclejdk8
 sudo: false
 cache:
   directories:
-    - $HOME/.m2
+  - "$HOME/.m2"
 before_install:
-  - java -version
+- java -version
 script:
-  - ./mvnw clean
-  - ./mvnw test
-  - ./mvnw package -Pprod -DskipTests
+- "./mvnw clean"
+- "./mvnw test"
+- "./mvnw package -Pprod -DskipTests"
 notifications:
   webhooks:
-    on_success: change  # options: [always|never|change] default: always
-    on_failure: always  # options: [always|never|change] default: always
-    on_start: false     # default: false
+    on_success: change
+    on_failure: always
+    on_start: false
+deploy:
+  api_key:
+    secure: QgBmNVZwgwMzsaNgvXaam3FHGCXb4fF0U4T5cGqGfVkRlzaUD+1ee1U6eNF9eHkXsU5tqC+0+VLRSzjOAlQk4L23Ari7AVQ2Ttp8I2TWjvDCaHjJ9IipMZSjPmzewQDg3uIgBxt3BkuEf2b0CeM1chzQ9QuGaTDosjEbsxdCNHZt/Qjp8bcLLAeLby8jhvIosWA45Z0oMXRSXu/8be9nYCPSdOmBNhHwKCDYwRQHsH+zdMqGhOKKmGa9OJ1R/hd1eMx8wVfZJtmvph63W4J7KX01pYIzO3Dit+nzc/bOgL8Bfb5V6jxHnX+K584qVyxa8fyPVd5oQ2ntJswzHhhzlgkbEFHGdL6TmPsXwKUPxrgEhb1yrQw6eZqd7c5cT+FmvDpWVrOTHVlJIKU745IChvtzalxzHteywXRCWNKc3lsTrriOqPS7cV7v+6evsBjDL0q5Yub88bYSJom8SZlKgqpy3m76y0tjV6zdsOu+UDArX85+wgz6epXc0dQPPBlgEreYZcFT6TeaS/z1WxLuJH/jZGpysuvQiHOmEbQgXqQa4RtPQlHISNq4B8076nQa/bk5UMJB7h9bZfFl3+/xCKpC/7UvvminQTaqy1+DtgmKx9F3LjWMdAm5eZLfnlOAAlNdhCc1vi/x1kZ+DcA/P3RG1HDpVOG+7yFWj5Wbrr4=
