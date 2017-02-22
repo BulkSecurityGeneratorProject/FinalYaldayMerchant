@@ -44,13 +44,13 @@ public class CustomerResource {
      * POST  /customer : Create a new customer.
      *
      * @param customerDTO the customer to create
-     * @return the ResponseEntity with status 201 (Created) and with body the new merchant, or with status 400 (Bad Request) if the merchant has already an ID
+     * @return the ResponseEntity with status 201 (Created) and with body the new customer, or with status 400 (Bad Request) if the merchant has already an ID
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
     @PostMapping("/customers")
     @Timed
     public ResponseEntity<Customer> createCustomer(@Valid @RequestBody CustomerDTO customerDTO) throws URISyntaxException {
-        log.debug("REST request to save Merchant : {}", customerDTO);
+        log.debug("REST request to save Customer : {}", customerDTO);
         Customer result = customerRepository.save(customerDTO.toCustomer());
         customerSearchRepository.save(result);
         return ResponseEntity.created(new URI("/api/customer/" + result.getId()))
@@ -62,15 +62,15 @@ public class CustomerResource {
      * PUT  /customers : Updates an existing customer.
      *
      * @param customer the customer to update
-     * @return the ResponseEntity with status 200 (OK) and with body the updated merchant,
-     * or with status 400 (Bad Request) if the merchant is not valid,
-     * or with status 500 (Internal Server Error) if the merchant couldnt be updated
+     * @return the ResponseEntity with status 200 (OK) and with body the updated customer,
+     * or with status 400 (Bad Request) if the customer is not valid,
+     * or with status 500 (Internal Server Error) if the customer couldnt be updated
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
     @PostMapping("/customers/{id}")
     @Timed
     public ResponseEntity<Customer> updateCustomer(@NotNull @PathVariable Long id, @Valid @RequestBody CustomerDTO customer) throws URISyntaxException {
-        log.debug("REST request to update Merchant : {}", customer);
+        log.debug("REST request to update Customer : {}", customer);
         Customer result = customerRepository.saveAndFlush(customer.toCustomer(Optional.of(id)));
         customerSearchRepository.save(result);
         return ResponseEntity.ok()
@@ -141,7 +141,7 @@ public class CustomerResource {
     @Timed
     public ResponseEntity<List<Customer>> searchCustomers(@RequestParam String query, Pageable pageable)
             throws URISyntaxException {
-        log.debug("REST request to search for a page of Merchants for query {}", query);
+        log.debug("REST request to search for a page of Customers for query {}", query);
         Page<Customer> page = customerSearchRepository.search(queryStringQuery(query), pageable);
         HttpHeaders headers = PaginationUtil.generateSearchPaginationHttpHeaders(query, page, "/api/_search/customers");
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
