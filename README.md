@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Yalday/FinalYaldayMerchant.svg?branch=master)](https://travis-ci.org/Yalday/FinalYaldayMerchant)
+
 # FinalYaldayMerchant
 
 This application was generated using JHipster 3.11.0, you can find documentation and help at [https://jhipster.github.io/documentation-archive/v3.11.0](https://jhipster.github.io/documentation-archive/v3.11.0).
