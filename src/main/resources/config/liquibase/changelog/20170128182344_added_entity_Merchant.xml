@@ -61,11 +61,11 @@
                 <constraints nullable="true" />
             </column>
 
-            <column name="date_created" type="timestamp">
+            <column name="date_created" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false" />
             </column>
 
-            <column name="last_edited" type="timestamp">
+            <column name="last_edited" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false" />
             </column>
 

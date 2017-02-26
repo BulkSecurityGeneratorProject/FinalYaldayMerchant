@@ -38,7 +38,7 @@ spring:
         url: jdbc:mysql://localhost:3306/FinalYaldayMerchant?useUnicode=true&characterEncoding=utf8&useSSL=false
         name:
         username: root
-        password: password
+        password: root
         hikari:
             data-source-properties:
                 cachePrepStmts: true
@@ -50,7 +50,7 @@ spring:
         database: MYSQL
         show-sql: true
         properties:
-            hibernate.cache.use_second_level_cache: true
+            hibernate.cache.use_second_level_cache: false
             hibernate.cache.use_query_cache: false
             hibernate.generate_statistics: true
     data:
