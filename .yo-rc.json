@@ -30,6 +30,7 @@
     "languages": [
       "en",
       "nl"
-    ]
+    ],
+    "herokuAppName": "yaldaymerchant-staging-eu"
   }
 }
