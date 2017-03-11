@@ -35,8 +35,44 @@ public class User implements Serializable {
 
     @NotNull
     @Size(min = 4, max = 40)
+    @Column(name = "login", length = 40, nullable = false)
+    private String login;
+
+    @NotNull
+    @Size(min = 4, max = 40)
+    @Column(name = "password", length = 40, nullable = false)
+    private String password;
+
+    @NotNull
+    @Size(min = 4, max = 40)
+    @Column(name = "first_name", length = 40, nullable = false)
+    private String firstName;
+
+    @NotNull
+    @Size(min = 4, max = 40)
+    @Column(name = "last_name", length = 40, nullable = false)
+    private String lastName;
+
+    @NotNull
+    @Size(min = 4, max = 40)
     @Column(name = "email", length = 40, nullable = false)
     private String email;
+
+    @NotNull
+    @Column(name = "activated", nullable = false)
+    private Boolean activated;
+
+    @Size(min = 4, max = 40)
+    @Column(name = "lang_key", length = 40, nullable = false)
+    private String langKey;
+
+    @Size(min = 4, max = 40)
+    @Column(name = "activation_key", length = 40, nullable = false)
+    private String activationKey;
+
+    @Size(min = 4, max = 40)
+    @Column(name = "reset_key", length = 40, nullable = false)
+    private String resetKey;
 
     @CreationTimestamp
     @Column(name = "date_created", updatable = false)

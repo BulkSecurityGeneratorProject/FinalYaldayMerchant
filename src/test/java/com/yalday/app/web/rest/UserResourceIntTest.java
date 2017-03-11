@@ -44,8 +44,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = FinalYaldayMerchantApp.class)
 public class UserResourceIntTest {
 
+    private static final String DEFAULT_LOGIN = "AAAAAAAAAA";
+    private static final String UPDATED_LOGIN = "BBBBBBBBBB";
+
+    private static final String DEFAULT_PASSWORD = "AAAAAAAAAA";
+    private static final String UPDATED_PASSWORD = "BBBBBBBBBB";
+
+    private static final String DEFAULT_FIRSTNAME = "AAAAAAAAAA";
+    private static final String UPDATED_FIRSTNAME = "BBBBBBBBBB";
+
+    private static final String DEFAULT_LASTNAME = "AAAAAAAAAA";
+    private static final String UPDATED_LASTNAME = "BBBBBBBBBB";
+
     private static final String DEFAULT_EMAIL = "AAAAAAAAAA";
     private static final String UPDATED_EMAIL = "BBBBBBBBBB";
+
+    private static final String DEFAULT_LANGKEY = "AAAAAAAAAA";
+    private static final String DEFAULT_ACTIVATIONKEY = "BBBBBBBBBB";
+    private static final String DEFAULT_RESETKEY = "AAAAAAAAAA";
 
     @Inject
     private UserRepository userRepository;
@@ -85,7 +101,15 @@ public class UserResourceIntTest {
      */
     public static UserDTO createEntity() {
         return UserDTO.builder()
+                .login(DEFAULT_LOGIN)
+                .password(DEFAULT_PASSWORD)
+                .firstName(DEFAULT_FIRSTNAME)
+                .lastName(DEFAULT_LASTNAME)
                 .email(DEFAULT_EMAIL)
+                .activated(false)
+                .langKey(DEFAULT_LANGKEY)
+                .activationKey(DEFAULT_ACTIVATIONKEY)
+                .resetKey(DEFAULT_RESETKEY)
                 .build();
     }
 
@@ -116,10 +140,83 @@ public class UserResourceIntTest {
         assertThat(testUser.getEmail()).isEqualTo(DEFAULT_EMAIL);
         assertThat(testUser.getDateCreated()).isBetween(before, after, true, true);
         assertThat(testUser.getLastEdited()).isBetween(before, after, true, true);
+        assertThat(testUser.getActivated()).isFalse();
 
         // Validate the User in ElasticSearch
         User userEs = userSearchRepository.findOne(testUser.getId());
         assertThat(userEs).isEqualToComparingFieldByField(testUser);
+    }
+
+    @Test
+    @Transactional
+    public void checkLoginIsRequired() throws Exception {
+        int databaseSizeBeforeTest = userRepository.findAll().size();
+        // set the field null
+        user.setLogin(null);
+
+        // Create the User, which fails.
+
+        restUserMockMvc.perform(post("/api/users")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(user)))
+                .andExpect(status().isBadRequest());
+
+        List<User> users = userRepository.findAll();
+        assertThat(users).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
+    public void checkPasswordIsRequired() throws Exception {
+        int databaseSizeBeforeTest = userRepository.findAll().size();
+        // set the field null
+        user.setPassword(null);
+
+        // Create the User, which fails.
+
+        restUserMockMvc.perform(post("/api/users")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(user)))
+                .andExpect(status().isBadRequest());
+
+        List<User> users = userRepository.findAll();
+        assertThat(users).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
+    public void checkFirstNameIsRequired() throws Exception {
+        int databaseSizeBeforeTest = userRepository.findAll().size();
+        // set the field null
+        user.setFirstName(null);
+
+        // Create the User, which fails.
+
+        restUserMockMvc.perform(post("/api/users")
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(user)))
+            .andExpect(status().isBadRequest());
+
+        List<User> users = userRepository.findAll();
+        assertThat(users).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
+    public void checkLastNameIsRequired() throws Exception {
+        int databaseSizeBeforeTest = userRepository.findAll().size();
+        // set the field null
+        user.setLastName(null);
+
+        // Create the User, which fails.
+
+        restUserMockMvc.perform(post("/api/users")
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(user)))
+            .andExpect(status().isBadRequest());
+
+        List<User> users = userRepository.findAll();
+        assertThat(users).hasSize(databaseSizeBeforeTest);
     }
 
     @Test
@@ -139,6 +236,25 @@ public class UserResourceIntTest {
         List<User> users = userRepository.findAll();
         assertThat(users).hasSize(databaseSizeBeforeTest);
     }
+
+    @Test
+    @Transactional
+    public void checkActivatedIsRequired() throws Exception {
+        int databaseSizeBeforeTest = userRepository.findAll().size();
+        // set the field null
+        user.setActivated(null);
+
+        // Create the User, which fails.
+
+        restUserMockMvc.perform(post("/api/users")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(user)))
+                .andExpect(status().isBadRequest());
+
+        List<User> users = userRepository.findAll();
+        assertThat(users).hasSize(databaseSizeBeforeTest);
+    }
+
 
     @Test
     @Transactional
@@ -165,7 +281,7 @@ public class UserResourceIntTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.id").value(saved.getId().intValue()))
-            .andExpect(jsonPath("$.email").value(DEFAULT_EMAIL.toString()));
+            .andExpect(jsonPath("$.email").value(DEFAULT_EMAIL));
     }
 
     @Test
@@ -186,7 +302,12 @@ public class UserResourceIntTest {
 
         // Update the user
         UserDTO updatedUser = UserDTO.builder()
+                .firstName(UPDATED_FIRSTNAME)
+                .lastName(UPDATED_LASTNAME)
+                .login(UPDATED_LOGIN)
+                .password(UPDATED_PASSWORD)
                 .email(UPDATED_EMAIL)
+                .activated(true)
                 .build();
 
         Thread.sleep(50); // so the last edited time is different
