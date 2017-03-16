@@ -40,6 +40,7 @@ public class CustomerResource {
 
     @Inject
     private CustomerSearchRepository customerSearchRepository;
+
     /**
      * POST  /customer : Create a new customer.
      *
