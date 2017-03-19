@@ -4,10 +4,8 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
-    <include file="classpath:config/liquibase/changelog/00000000000000_initial_schema.xml" relativeToChangelogFile="false"/>
-    <include file="classpath:config/liquibase/changelog/20170128182344_added_entity_Merchant.xml" relativeToChangelogFile="false"/>
-    <include file="classpath:config/liquibase/changelog/20170222_customer_entity.xml" relativeToChangelogFile="false"/>
-    <include file="classpath:config/liquibase/changelog/20170305_user_entity.xml" relativeToChangelogFile="false"/>
-    <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
-    <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
+    <include file="classpath:config/liquibase/changelog/_initial_schema.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/merchant_entity.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/customer_entity.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/user_entity.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

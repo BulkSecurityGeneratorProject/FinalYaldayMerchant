@@ -105,7 +105,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>
+            <!-- in staging we will use this until we are fixed on a cloud provider <scope>test</scope> -->
         </dependency>
         <dependency>
             <groupId>com.jayway.awaitility</groupId>
