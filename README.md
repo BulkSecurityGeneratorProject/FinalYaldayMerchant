@@ -2,39 +2,42 @@
 
 # FinalYaldayMerchant
 
-This application was generated using JHipster 3.11.0, you can find documentation and help at [https://jhipster.github.io/documentation-archive/v3.11.0](https://jhipster.github.io/documentation-archive/v3.11.0).
-
-This is a "microservice" application intended to be part of a microservice architecture, please refer to the [Doing microservices with JHipster][] page of the documentation for more information.
-
-This application is configured for Service Discovery and Configuration with the JHipster-Registry. On launch, it will refuse to start if it is not able to connect to the JHipster-Registry at [http://localhost:8761](http://localhost:8761). For more information, read our documentation on [Service Discovery and Configuration with the JHipster-Registry][].
+This project is the main user service for Yalday
 
 ## Development
 
-To start your application in the dev profile, simply run:
+To start the application in the dev profile, simply run:
 
     ./mvnw
+   
+## Staging
 
-
-For further instructions on how to develop with JHipster, have a look at [Using JHipster in development][].
+To start the application in the staging
+ 
+    export JHIPSTER_REGISTRY_USER=admin
+    export JHIPSTER_REGISTRY_PASSWORD=admin
+    export JHIPSTER_REGISTRY_HOST=yalday-jhipsterregistry.herokuapp.com
+    export PORT=8080
+    
+    ./mvnw -Pdev,heroku clean package
+      
+      OR
+      
+    mvn clean package; java -jar target/*.war --spring.profiles.active=dev,heroku --server.port=8080
+    
+If ran locally, this will connect to the staging jhipster registry.    
 
 ## Building for production
 
-To optimize the FinalYaldayMerchant application for production, run:
+We are not there yet...
 
-    ./mvnw -Pprod clean package
-
-To ensure everything worked, run:
-
-    java -jar target/*.war
-
-
-Refer to [Using JHipster in production][] for more details.
 
 ## Testing
 
 To launch your application's tests, run:
 
-    ./mvnw clean test
+    mvn clean test
+    
 ### Other tests
 
 Performance tests are run by [Gatling][] and written in Scala. They're located in `src/test/gatling` and can be run with:
@@ -43,40 +46,48 @@ Performance tests are run by [Gatling][] and written in Scala. They're located i
 
 For more information, refer to the [Running tests page][].
 
-## Using Docker to simplify development (optional)
 
-You can use Docker to improve your JHipster development experience. A number of docker-compose configuration are available in the `src/main/docker` folder to launch required third party services.
-For example, to start a mysql database in a docker container, run:
+## Contributing
 
-    docker-compose -f src/main/docker/mysql.yml up -d
+### To submit a change do the following
 
-To stop it and remove the container, run:
+     git pull (--rebase)
+     git checkout -b "some_sensible_branch_name"
+     <make your changes>
+     git commit -am "some sensible commit message"
+     git push -u origin some_sensible_branch_name
+     
+### Conflicts
 
-    docker-compose -f src/main/docker/mysql.yml down
+If you need to make changes to an existing branch, you should always make sure it has the latest master
+already included. This is done by doing 
 
-You can also fully dockerize your application and all the services that it depends on.
-To achieve this, first build a docker image of your app by running:
+     git checkout master
+     git pull
+     git checkout "some_sensible_branch_name" 
+     git rebase master
 
-    ./mvnw package -Pprod docker:build
+Rebasing has some major advantages to merging from master to the branch. Simply put, you don't end up with an extra 
+commit and the history tree is kept sane. Here is a nice article https://www.atlassian.com/git/tutorials/merging-vs-rebasing
+      
+    
+When you rebase your branch onto master you may have conflicts. So at this point you will be in the middle of a rebase.
+This gives you the chance to fix them by selecting the correct code to use (I use intellij for this but you can use whatever feels most confortable).
+Once all conflicts are resolved run:
 
-Then run:
+    git rebase --continue
+    
+then 
+   
+    git push -f
+    
+IMPORTANT: This is a force push and will OVERWRITE whatever is in the remote repository. NEVER run this command
+           on master
+    
+## Continuous integration
 
-    docker-compose -f src/main/docker/app.yml up -d
+All branches and pull requests are ran on travis. The current master status is displayed at the top
+of this file, click this to go to the travis build, the details of which can be seen .travis.yml.
+     
 
-For more information refer to [Using Docker and Docker-Compose][], this page also contains information on the docker-compose sub-generator (`yo jhipster:docker-compose`), which is able to generate docker configurations for one or several JHipster applications.
 
-## Continuous Integration (optional)
-
-To set up a CI environment, consult the [Setting up Continuous Integration][] page.
-
-[JHipster Homepage and latest documentation]: https://jhipster.github.io
-[JHipster 3.11.0 archive]: https://jhipster.github.io/documentation-archive/v3.11.0
-[Doing microservices with JHipster]: https://jhipster.github.io/documentation-archive/v3.11.0/microservices-architecture/
-[Using JHipster in development]: https://jhipster.github.io/documentation-archive/v3.11.0/development/
-[Service Discovery and Configuration with the JHipster-Registry]: https://jhipster.github.io/documentation-archive/v3.11.0/microservices-architecture/#jhipster-registry
-[Using Docker and Docker-Compose]: https://jhipster.github.io/documentation-archive/v3.11.0/docker-compose
-[Using JHipster in production]: https://jhipster.github.io/documentation-archive/v3.11.0/production/
-[Running tests page]: https://jhipster.github.io/documentation-archive/v3.11.0/running-tests/
-[Setting up Continuous Integration]: https://jhipster.github.io/documentation-archive/v3.11.0/setting-up-ci/
-
-[Gatling]: http://gatling.io/
