@@ -17,4 +17,4 @@ eureka:
         prefer-ip-address: false
     client:
         serviceUrl:
-            defaultZone: ${JHIPSTER_REGISTRY_URL}/eureka/
+            defaultZone: https://${JHIPSTER_REGISTRY_USER}:${JHIPSTER_REGISTRY_PASSWORD}@${JHIPSTER_REGISTRY_HOST}/eureka/
