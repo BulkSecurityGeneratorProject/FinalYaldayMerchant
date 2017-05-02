@@ -8,4 +8,7 @@
     <include file="classpath:config/liquibase/changelog/merchant_entity.xml" relativeToChangelogFile="false"/>
     <include file="classpath:config/liquibase/changelog/customer_entity.xml" relativeToChangelogFile="false"/>
     <include file="classpath:config/liquibase/changelog/user_entity.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/authority.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/user_authority.xml" relativeToChangelogFile="false"/>
+    <include file="classpath:config/liquibase/changelog/social_user_connection.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

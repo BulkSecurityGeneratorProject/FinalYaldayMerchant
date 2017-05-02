@@ -5,6 +5,7 @@ import com.yalday.app.domain.User;
 import com.yalday.app.domain.dto.UserDTO;
 import com.yalday.app.repository.UserRepository;
 import com.yalday.app.repository.search.UserSearchRepository;
+import com.yalday.app.service.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,7 +25,11 @@ import javax.persistence.EntityManager;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -67,6 +72,9 @@ public class UserResourceIntTest {
     private UserRepository userRepository;
 
     @Inject
+    private UserService userService;
+
+    @Inject
     private UserSearchRepository userSearchRepository;
 
     @Inject
@@ -84,10 +92,12 @@ public class UserResourceIntTest {
 
     @Before
     public void setup() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         MockitoAnnotations.initMocks(this);
         UserResource userResource = new UserResource();
         ReflectionTestUtils.setField(userResource, "userSearchRepository", userSearchRepository);
         ReflectionTestUtils.setField(userResource, "userRepository", userRepository);
+        ReflectionTestUtils.setField(userResource, "userService", userService);
         this.restUserMockMvc = MockMvcBuilders.standaloneSetup(userResource)
                 .setCustomArgumentResolvers(pageableArgumentResolver)
                 .setMessageConverters(jacksonMessageConverter).build();
@@ -138,8 +148,10 @@ public class UserResourceIntTest {
         assertThat(users).hasSize(databaseSizeBeforeCreate + 1);
         User testUser = users.get(users.size() - 1);
         assertThat(testUser.getEmail()).isEqualTo(DEFAULT_EMAIL);
-        assertThat(testUser.getDateCreated()).isBetween(before, after, true, true);
-        assertThat(testUser.getLastEdited()).isBetween(before, after, true, true);
+        assertThat(testUser.getCreatedDate()).isAfter(before);
+        assertThat(testUser.getCreatedDate()).isBefore(after);
+        assertThat(testUser.getLastEdited()).isAfter(before);
+        assertThat(testUser.getLastEdited()).isBefore(after);
         assertThat(testUser.getActivated()).isFalse();
 
         // Validate the User in ElasticSearch
@@ -302,17 +314,21 @@ public class UserResourceIntTest {
 
         // Update the user
         UserDTO updatedUser = UserDTO.builder()
-                .firstName(UPDATED_FIRSTNAME)
-                .lastName(UPDATED_LASTNAME)
-                .login(UPDATED_LOGIN)
-                .password(UPDATED_PASSWORD)
-                .email(UPDATED_EMAIL)
-                .activated(true)
-                .build();
+            .firstName(UPDATED_FIRSTNAME)
+            .lastName(UPDATED_LASTNAME)
+            .login(UPDATED_LOGIN)
+            .password(UPDATED_PASSWORD)
+            .email(UPDATED_EMAIL)
+            .activationKey(DEFAULT_ACTIVATIONKEY)
+            .langKey(DEFAULT_LANGKEY)
+            .resetKey(DEFAULT_RESETKEY)
+            .activated(true)
+            .build();
 
         Thread.sleep(50); // so the last edited time is different
 
         Timestamp updateTime = Timestamp.from(Instant.now(Clock.systemDefaultZone()));
+        //ZonedDateTime updateTime = ZonedDateTime.now();
         restUserMockMvc.perform(post("/api/users/{id}", saved.getId())
                 .contentType(TestUtil.APPLICATION_JSON_UTF8)
                 .content(TestUtil.convertObjectToJsonBytes(updatedUser)))
@@ -323,7 +339,7 @@ public class UserResourceIntTest {
         assertThat(users).hasSize(databaseSizeBeforeUpdate);
         User testUser = users.get(users.size() - 1);
         assertThat(testUser.getEmail()).isEqualTo(UPDATED_EMAIL);
-        assertThat(testUser.getDateCreated()).isEqualTo(saved.getDateCreated());
+        assertThat(testUser.getCreatedDate()).isEqualTo(saved.getCreatedDate());
         assertThat(testUser.getLastEdited()).isAfter(updateTime);
 
         // Validate the User in ElasticSearch
@@ -366,7 +382,7 @@ public class UserResourceIntTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(saved.getId().intValue())))
             .andExpect(jsonPath("$.[*].email").value(hasItem(DEFAULT_EMAIL)))
-            .andExpect(jsonPath("$.[*].dateCreated").exists())
+            .andExpect(jsonPath("$.[*].createdDate").exists())
             .andExpect(jsonPath("$.[*].lastEdited").exists());
     }
 }

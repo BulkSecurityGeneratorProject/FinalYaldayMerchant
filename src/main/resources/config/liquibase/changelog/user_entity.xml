@@ -24,7 +24,7 @@
             <column name="login" type="varchar(40)">
                 <constraints nullable="false" />
             </column>
-            <column name="password" type="varchar(40)">
+            <column name="password" type="varchar(60)">
                 <constraints nullable="false" />
             </column>
             <column name="first_name" type="varchar(40)">
@@ -48,7 +48,10 @@
             <column name="reset_key" type="varchar(40)">
                 <constraints nullable="true" />
             </column>
-            <column name="date_created" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+            <column name="reset_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="true" />
+            </column>
+            <column name="date_created" type="timestamp" defaultValueComputed="now()">
                 <constraints nullable="false" />
             </column>
             <column name="last_edited" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
@@ -56,8 +59,12 @@
             </column>
         </createTable>
 
-        <dropDefaultValue tableName="user" columnName="date_created" columnDataType="datetime"/>
         <dropDefaultValue tableName="user" columnName="last_edited" columnDataType="datetime"/>
+
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/users.csv"
+                  separator=";"
+                  tableName="user"/>
 
     </changeSet>
 </databaseChangeLog>

@@ -7,6 +7,7 @@ import com.yalday.app.domain.dto.CustomerDTO;
 import com.yalday.app.domain.dto.MerchantDTO;
 import com.yalday.app.repository.CustomerRepository;
 import com.yalday.app.repository.search.CustomerSearchRepository;
+import com.yalday.app.service.SocialService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
