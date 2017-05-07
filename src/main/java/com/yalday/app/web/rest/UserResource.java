@@ -6,6 +6,7 @@ import com.yalday.app.domain.User;
 import com.yalday.app.domain.dto.UserDTO;
 import com.yalday.app.repository.UserRepository;
 import com.yalday.app.repository.search.UserSearchRepository;
+import com.yalday.app.service.UserService;
 import com.yalday.app.web.rest.util.HeaderUtil;
 import com.yalday.app.web.rest.util.PaginationUtil;
 import org.slf4j.Logger;
@@ -42,6 +43,9 @@ public class UserResource {
     @Inject
     private UserSearchRepository userSearchRepository;
 
+    @Inject
+    private UserService userService;
+
     /**
      * POST  /user : Create a new user.
      *
@@ -53,7 +57,7 @@ public class UserResource {
     @Timed
     public ResponseEntity<User> createUser(@Valid @RequestBody UserDTO userDTO) throws URISyntaxException {
         log.debug("REST request to save User : {}", userDTO);
-        User result = userRepository.save(userDTO.toUser());
+        User result = userService.createUser(userDTO);
         userSearchRepository.save(result);
         return ResponseEntity.created(new URI("/api/user/" + result.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert("user", result.getId().toString()))
@@ -73,8 +77,23 @@ public class UserResource {
     @Timed
     public ResponseEntity<User> updateUser(@NotNull @PathVariable Long id, @Valid @RequestBody UserDTO user) throws URISyntaxException {
         log.debug("REST request to update User : {}", user);
-        User result = userRepository.saveAndFlush(user.toUser(Optional.of(id)));
-        userSearchRepository.save(result);
+        Optional<User> existingUser = userRepository.findOneByEmail(user.getEmail());
+        if (existingUser.isPresent() && (!existingUser.get().getId().equals(id))) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("userManagement", "emailexists", "E-mail already in use"))
+                    .body(null);
+        }
+        existingUser = userRepository.findOneByLogin(user.getLogin().toLowerCase());
+        if (existingUser.isPresent() && (!existingUser.get().getId().equals(id))) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("userManagement", "userexists", "Login already in use"))
+                    .body(null);
+        }
+        existingUser = userRepository.findOneById(id);
+        if (existingUser.isPresent() && (!existingUser.get().getId().equals(id))) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("userManagement", "uidexists", "ID already in use"))
+                .body(null);
+        }
+        User result = userService.updateUser(user, id);
+
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert("user", id.toString()))
                 .body(result);
@@ -125,7 +144,7 @@ public class UserResource {
     @Timed
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         log.debug("REST request to delete User : {}", id);
-        userRepository.delete(id);
+        userService.deleteUser(id);
         userSearchRepository.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert("user", id.toString())).build();
     }

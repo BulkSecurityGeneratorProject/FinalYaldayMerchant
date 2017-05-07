@@ -27,6 +27,8 @@ public class JHipsterProperties {
 
     private final CorsConfiguration cors = new CorsConfiguration();
 
+    private final Social social = new Social();
+
     private final Ribbon ribbon = new Ribbon();
 
     public Async getAsync() {
@@ -57,8 +59,23 @@ public class JHipsterProperties {
         return cors;
     }
 
+    public Social getSocial() { return social; }
+
     public Ribbon getRibbon() {
         return ribbon;
+    }
+
+    public static class Social {
+
+        private String redirectAfterSignIn = "/#/home";
+
+        public String getRedirectAfterSignIn() {
+            return redirectAfterSignIn;
+        }
+
+        public void setRedirectAfterSignIn(String redirectAfterSignIn) {
+            this.redirectAfterSignIn = redirectAfterSignIn;
+        }
     }
 
     public static class Async {

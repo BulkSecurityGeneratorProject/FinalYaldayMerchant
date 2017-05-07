@@ -21,6 +21,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.TimeZone;
 
 @ComponentScan
 @EnableAutoConfiguration(exclude = { MetricFilterAutoConfiguration.class, MetricRepositoryAutoConfiguration.class })
@@ -63,6 +64,7 @@ public class FinalYaldayMerchantApp {
     public static void main(String[] args) throws UnknownHostException {
         SpringApplication app = new SpringApplication(FinalYaldayMerchantApp.class);
         DefaultProfileUtil.addDefaultProfile(app);
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         Environment env = app.run(args).getEnvironment();
         log.info("\n----------------------------------------------------------\n\t" +
                 "Application '{}' is running! Access URLs:\n\t" +
