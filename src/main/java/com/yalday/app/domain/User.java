@@ -1,6 +1,7 @@
 package com.yalday.app.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -41,8 +42,8 @@ public class User implements Serializable {
     @Column(name = "login", length = 40, nullable = false)
     private String login;
 
-    //@NotNull
-    //@Size(min = 4, max = 40)
+    @NotNull
+    @Size(min = 4, max = 60)
     @Column(name = "password", length = 60, nullable = false)
     private String password;
 
