@@ -1,5 +1,6 @@
 package com.yalday.app.web.rest;
 
+import com.google.common.collect.Sets;
 import com.yalday.app.FinalYaldayMerchantApp;
 import com.yalday.app.domain.User;
 import com.yalday.app.domain.dto.UserDTO;
@@ -61,8 +62,8 @@ public class UserResourceIntTest {
     private static final String DEFAULT_LASTNAME = "AAAAAAAAAA";
     private static final String UPDATED_LASTNAME = "BBBBBBBBBB";
 
-    private static final String DEFAULT_EMAIL = "AAAAAAAAAA";
-    private static final String UPDATED_EMAIL = "BBBBBBBBBB";
+    private static final String DEFAULT_EMAIL = "default@example.com";
+    private static final String UPDATED_EMAIL = "updated@example.com";
 
     private static final String DEFAULT_LANGKEY = "AAAAAAAAAA";
     private static final String DEFAULT_ACTIVATIONKEY = "BBBBBBBBBB";
@@ -111,16 +112,17 @@ public class UserResourceIntTest {
      */
     public static UserDTO createEntity() {
         return UserDTO.builder()
-                .login(DEFAULT_LOGIN)
-                .password(DEFAULT_PASSWORD)
-                .firstName(DEFAULT_FIRSTNAME)
-                .lastName(DEFAULT_LASTNAME)
-                .email(DEFAULT_EMAIL)
-                .activated(false)
-                .langKey(DEFAULT_LANGKEY)
-                .activationKey(DEFAULT_ACTIVATIONKEY)
-                .resetKey(DEFAULT_RESETKEY)
-                .build();
+            .login(DEFAULT_LOGIN)
+            .password(DEFAULT_PASSWORD)
+            .firstName(DEFAULT_FIRSTNAME)
+            .lastName(DEFAULT_LASTNAME)
+            .email(DEFAULT_EMAIL)
+            .activated(false)
+            .langKey(DEFAULT_LANGKEY)
+            .activationKey(DEFAULT_ACTIVATIONKEY)
+            .resetKey(DEFAULT_RESETKEY)
+            .authorities(Sets.newHashSet())
+            .build();
     }
 
     @Before
@@ -323,6 +325,7 @@ public class UserResourceIntTest {
             .langKey(DEFAULT_LANGKEY)
             .resetKey(DEFAULT_RESETKEY)
             .activated(true)
+            .authorities(Sets.newHashSet())
             .build();
 
         Thread.sleep(50); // so the last edited time is different
